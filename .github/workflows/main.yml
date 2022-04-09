@@ -35,6 +35,9 @@ jobs:
       - name: 'Install requirements'
         run: pip install selenium
       - name: 'running'
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
         run: |
           sudo cp -p ./chromedriver /usr/bin/
           chmod -R 777 /usr/bin/chromedriver
