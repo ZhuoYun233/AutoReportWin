@@ -5,7 +5,14 @@ username = os.environ["USERNAME"]
 password = os.environ["PASSWORD"]
 options = webdriver.ChromeOptions()
 # 这个是绝对路径
-driver = webdriver.Chrome(executable_path="C:/Users/xus17/downloads/chromedriver", options=options)
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chromedriver = "/usr/bin/chromedriver"
+os.environ["webdriver.chrome.driver"] = chromedriver
+driver = webdriver.Chrome(chrome_options=chrome_options,executable_path=chromedriver)
 driver.get("https://workflow.ecust.edu.cn/default/work/uust/zxxsmryb/mrybtb.jsp")
  
 # 最大化浏览器
