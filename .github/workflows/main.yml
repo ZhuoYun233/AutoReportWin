@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 19 * * *'
   watch:
     types: [started]
   # Allows you to run this workflow manually from the Actions tab
