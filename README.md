@@ -1,4 +1,5 @@
-# AutoReport
+# AutoReportWin
+auto report
 ## 使用方法
 下载并安装Chrome
 
@@ -13,3 +14,8 @@
 将onserver.py文件中的DRIVER_PATH常量修改为chomedriver.exe的路径。
 
 默认在根目录下寻找chromedriver.exe
+
+## 环境要求
+Python3
+
+pip 见requirements.txt
