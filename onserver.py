@@ -40,6 +40,7 @@ def fillIn(username, password, driver):
     driver.find_element(by = By.CLASS_NAME, value = "layui-layer-btn0").click()
     time.sleep(1)
     driver.close()
+ 
 
 def getConfig(section,key):
     config=ConfigParser()
@@ -54,6 +55,7 @@ while True:
         i += 1
         driver = webdriver.Chrome(service=s, options=options)
         fillIn(accountNow,passwordNow,driver)
+        fillIn(accountNow,passwordNow)
     except NoSectionError:
         print('已经全部填报或存在序号跳跃')
         break
@@ -72,3 +74,4 @@ while True:
             print('chromedriver已经关闭了')
         continue
 exit(0)
+
