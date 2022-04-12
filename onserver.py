@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import ElementClickInterceptedException,NoSuchElementException,InvalidSessionIdException
 
-import autoemail
+import autoReport
 
 #chromedriver路径
 DRIVER_PATH = 'chromedriver.exe'
@@ -48,11 +48,27 @@ def getConfig(section,key):
     config.read(configINI)
     return config.get(section,key)
 
+#生成反馈信息，各参数以此为：编号，管理员邮件反馈，用户邮件反馈，管理员pushplus反馈，当前账号，结果
+def report(num,admin_mail_report,user_reports,admin_json_report,account,status):
+    print('账号'+str(num)+':'+account+status) #命令行反馈
+    admin_mail_report = admin_mail_report + (' 账号'+str(num)+':'+account+status+'\n') #管理员邮件反馈
+    user_reports.append('账号'+account+':'+status+'\n') #用户邮件反馈
+    admin_json_report['账号'+str(num)+':'+account] = status #管理员pushplus反馈
+    return (admin_mail_report,user_reports,admin_json_report)
 
-contants = []
-receivers = {}
+#执行反馈操作
+def do_report(admin_mail_report,user_reports,receivers,admin_json_report):
+    admin_mail_report = admin_mail_report + ('\nヾ(๑╹ꇴ◠๑)ﾉ”祝您天天开心!')
+    #autoReport.mail(admin_mail_report) #启用管理员邮件反馈
+    autoReport.mails(user_reports,receivers) #启用用户邮件反馈
+    autoReport.pushplus('填报反馈(ˊᗜˋ*)',admin_json_report) #启用管理员pushplus反馈
+
+admin_json_report = {} #管理员反馈
+user_reports = [] #用户反馈内容列表
+receivers = {} #用户清单
+admin_mail_report = '今日自动填报结果：\n\n'
+
 i=1
-report = '今日自动填报结果：\n\n'
 while True:
     account="ACCOUNT"+str(i)
     try:
@@ -66,29 +82,21 @@ while True:
         i += 1
         driver = webdriver.Chrome(service=s, options=options)
         fillIn(accountNow,passwordNow,driver)
-        print('账号'+str(i-1)+':完成')
-        report = report + (' 账号'+str(i-1)+':完成\n')
-        contants.append('账号'+accountNow+':完成\n')
+        admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='完成！')
         
     except NoSectionError:
         print('已经全部填报或存在序号跳跃')
-        report = report + ('\nヾ(๑╹ꇴ◠๑)ﾉ”祝您天天开心!')
-        autoemail.mail(report)
-        autoemail.mails(contants,receivers)
+        do_report(admin_mail_report,user_reports,receivers,admin_json_report)
         break
     except ElementClickInterceptedException:
-        print('账号'+str(i-1)+':'+accountNow+'今日已经填报')
-        report = report + (' 账号'+str(i-1)+':'+accountNow+'今日已经填报\n')
-        contants.append('账号'+accountNow+':今日已经填报\n')
+        admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='今日已填报')
         try:
             driver.close()
         except:
             print('chromedriver已经关闭了')
         continue
     except NoSuchElementException:
-        print('账号'+str(i-1)+':'+accountNow+'密码或账号错误')
-        report = report + (' 账号'+str(i-1)+':'+accountNow+'密码或账号错误\n')
-        contants.append('账号'+accountNow+':密码或账号错误\n')
+        admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='账号或密码错误')
         try:
             driver.close()
         except:

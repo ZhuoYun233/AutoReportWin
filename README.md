@@ -17,11 +17,13 @@ auto report
 
 默认在根目录下寻找chromedriver.exe
 
-## 自动邮件反馈
+## 自动反馈
 
-编辑autoemail.py，配置自动发送邮件，程序会在自动填报完成后将全部结果发送到指定邮箱。
+编辑autoReport.py，修改代码开头的常量，进行结果反馈。
 
 同时，可以在config.ini中修改ALIAS和MAIL的值，向个人发送填报结果。
+
+目前有三种反馈方式，开启与关闭可以在onserver.py中调整
 
 ## 环境要求
 Python3

@@ -2,13 +2,17 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.utils import formataddr
+import requests, json
 
 #####################################
 #请修改这里的内容！
-SENDER_MAIL='xxxxxx' #发件人邮箱账号
-SENDER_PWD='xxxxxx' #发件人邮箱密码
-RECEIVE_MAIL='xxxxxx' #收件人邮箱账号
-RECEIVER = 'xxxxxx' #收件人昵称
+SENDER_MAIL='xxxxxxx' #发件人邮箱账号
+SENDER_PWD='xxxxxxx' #发件人邮箱密码
+#SENDER_MAIL='xxxxxxx' #发件人邮箱账号
+#SENDER_PWD='xxxxxxx' #发件人邮箱密码
+RECEIVE_MAIL='xxxxxxx' #收件人邮箱账号
+RECEIVER = 'xxxxxxx' #收件人昵称
+TOKEN = 'xxxxxxx' #pushplus token
 #####################################
 
 #可以自定义发件人昵称和主题
@@ -47,8 +51,24 @@ def mails(contents,receivers):
             server.login(SENDER_MAIL,SENDER_PWD)
             server.sendmail(SENDER_MAIL,[receivers[receiver],],msg.as_string())
             server.quit() #关闭连接
-            print("Mail NO.%d Successful!" %(i+1)) #发送成功
+            print("Mail NO.%d successful!" %(i+1)) #发送成功
         except Exception: 
             print(Exception)
-            print("Mail NO.%d Failed."%(i+1)) #发送失败
+            print("Mail NO.%d failed."%(i+1)) #发送失败
         i+=1
+
+def pushplus(title,content):
+    url = 'http://pushplus.hxtrip.com/send'
+    data = {
+        "token":TOKEN,
+        "title":title,
+        "content":str(content),
+        "template":"json"
+    }
+    body=json.dumps(data).encode(encoding='utf-8')
+    headers = {'Content-Type':'application/json'}
+    try:
+        requests.post(url,data=body,headers=headers)
+        print('Pushplus report successfull!')
+    except:
+        print('Pushplus report failed!')
