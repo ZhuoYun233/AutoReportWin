@@ -47,6 +47,10 @@ def getConfig(section,key):
     config=ConfigParser()
     config.read(configINI)
     return config.get(section,key)
+
+
+contants = []
+receivers = {}
 i=1
 report = '今日自动填报结果：\n\n'
 while True:
@@ -54,19 +58,28 @@ while True:
     try:
         accountNow=getConfig(account,"ACCOUNT")
         passwordNow=getConfig(account,"PASSWORD")
+        # 尝试获取邮件信息
+        aliasNow = getConfig(account,"ALIAS")
+        mailNow = getConfig(account,"MAIL")
+        receivers[aliasNow]=mailNow
+            
         i += 1
         driver = webdriver.Chrome(service=s, options=options)
         fillIn(accountNow,passwordNow,driver)
         print('账号'+str(i-1)+':完成')
         report = report + (' 账号'+str(i-1)+':完成\n')
+        contants.append('账号'+accountNow+':完成\n')
+        
     except NoSectionError:
         print('已经全部填报或存在序号跳跃')
         report = report + ('\nヾ(๑╹ꇴ◠๑)ﾉ”祝您天天开心!')
         autoemail.mail(report)
+        autoemail.mails(contants,receivers)
         break
     except ElementClickInterceptedException:
         print('账号'+str(i-1)+':'+accountNow+'今日已经填报')
         report = report + (' 账号'+str(i-1)+':'+accountNow+'今日已经填报\n')
+        contants.append('账号'+accountNow+':今日已经填报\n')
         try:
             driver.close()
         except:
@@ -75,6 +88,7 @@ while True:
     except NoSuchElementException:
         print('账号'+str(i-1)+':'+accountNow+'密码或账号错误')
         report = report + (' 账号'+str(i-1)+':'+accountNow+'密码或账号错误\n')
+        contants.append('账号'+accountNow+':密码或账号错误\n')
         try:
             driver.close()
         except:
