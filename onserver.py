@@ -1,37 +1,47 @@
+import time, os
 from configparser import ConfigParser,NoSectionError
-import time
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import ElementClickInterceptedException,NoSuchElementException,InvalidSessionIdException
-import os
-options = webdriver.ChromeOptions()
-# 以下存放chromedriver路径，按需要修改
-configINI = "config.ini"
-webdriver_path=os.path.dirname(os.path.realpath(__file__)) +'/chromedriver.exe'
-driver = webdriver.Chrome(executable_path=webdriver_path, options=options)
 
-def fillIn(username, password):
-    driver = webdriver.Chrome(executable_path=webdriver_path, options=options)
+#chromedriver路径
+DRIVER_PATH = 'chromedriver.exe'
+if not os.path.exists(DRIVER_PATH):
+    print('找不到ChromeDriver!')
+    input()
+    exit(0)
+
+options = webdriver.ChromeOptions()
+# 忽略无用日志
+options.add_experimental_option("excludeSwitches", ['enable-automation', 'enable-logging'])
+
+configINI = "config.ini"
+s = Service(DRIVER_PATH)
+
+def fillIn(username, password, driver):
     driver.get("https://workflow.ecust.edu.cn/default/work/uust/zxxsmryb/mrybtb.jsp")
-    
     driver.maximize_window()
     time.sleep(1)
-    driver.find_element_by_id("username").send_keys(username)
+    driver.find_element(by = By.ID, value = 'username').send_keys(username)
     time.sleep(1)
-    driver.find_element_by_id("password").send_keys(password)
+    driver.find_element(by = By.ID, value = "password").send_keys(password)
     time.sleep(1)
-    driver.find_element_by_class_name("auth_login_btn").click()
+    driver.find_element(by = By.CLASS_NAME, value = "auth_login_btn").click()
     time.sleep(3)
-    driver.find_element_by_id("sui-select-swjkzk19").send_keys(1)
+    driver.find_element(by = By.ID, value = "sui-select-swjkzk19").send_keys(1)
     time.sleep(1)
-    driver.find_element_by_id("sui-select-xcm4").send_keys(1)
+    driver.find_element(by = By.ID, value = "sui-select-xcm4").send_keys(1)
     time.sleep(1)
-    driver.find_element_by_id("sui-select-sfycxxwc33").send_keys(1)
+    driver.find_element(by = By.ID, value = "sui-select-sfycxxwc33").send_keys(1)
     time.sleep(1)
-    driver.find_element_by_id("post").click()
+    driver.find_element(by = By.ID, value = "post").click()
     time.sleep(1)
-    driver.find_element_by_class_name("layui-layer-btn0").click()
+    driver.find_element(by = By.CLASS_NAME, value = "layui-layer-btn0").click()
     time.sleep(1)
     driver.close()
+ 
+
 def getConfig(section,key):
     config=ConfigParser()
     config.read(configINI)
@@ -43,15 +53,25 @@ while True:
         accountNow=getConfig(account,"ACCOUNT")
         passwordNow=getConfig(account,"PASSWORD")
         i += 1
+        driver = webdriver.Chrome(service=s, options=options)
+        fillIn(accountNow,passwordNow,driver)
         fillIn(accountNow,passwordNow)
     except NoSectionError:
         print('已经全部填报或存在序号跳跃')
         break
     except ElementClickInterceptedException:
         print('账号'+str(i-1)+':'+accountNow+'今日已经填报过了')
-        driver.close()
+        try:
+            driver.close()
+        except:
+            print('chromedriver已经关闭了')
         continue
     except NoSuchElementException:
         print('账号'+str(i-1)+'密码错误或账号错误')
-        driver.close()
+        try:
+            driver.close()
+        except:
+            print('chromedriver已经关闭了')
         continue
+exit(0)
+
