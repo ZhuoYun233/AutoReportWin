@@ -5,6 +5,8 @@ auto report
 
 编辑config.ini，设置正确的账号密码。
 
+如不需使用ALIAS和MAIL属性，请将值设为0。
+
 运行onserver.py
 
 ## 修改chromedriver
@@ -17,7 +19,9 @@ auto report
 
 ## 自动邮件反馈
 
-编辑autoemail.py，配置自动发送邮件，程序会在自动填报完成后将结果发送到指定邮箱。
+编辑autoemail.py，配置自动发送邮件，程序会在自动填报完成后将全部结果发送到指定邮箱。
+
+同时，可以在config.ini中修改ALIAS和MAIL的值，向个人发送填报结果。
 
 ## 环境要求
 Python3
