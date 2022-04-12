@@ -1,4 +1,4 @@
-# AutoReport
+# AutoReportWin
 ## 使用方法
 下载并安装Chrome
 
