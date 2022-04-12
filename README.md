@@ -15,6 +15,10 @@ auto report
 
 默认在根目录下寻找chromedriver.exe
 
+## 自动邮件反馈
+
+编辑autoemail.py，配置自动发送邮件，程序会在自动填报完成后将结果发送到指定邮箱。
+
 ## 环境要求
 Python3
 
