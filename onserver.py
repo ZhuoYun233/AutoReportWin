@@ -7,20 +7,6 @@ from selenium.common.exceptions import ElementClickInterceptedException,NoSuchEl
 
 import autoReport
 
-#chromedriver路径
-DRIVER_PATH = 'chromedriver.exe'
-if not os.path.exists(DRIVER_PATH):
-    print('找不到ChromeDriver!')
-    input()
-    exit(0)
-
-options = webdriver.ChromeOptions()
-# 忽略无用日志
-options.add_experimental_option("excludeSwitches", ['enable-automation', 'enable-logging'])
-
-configINI = "config.ini"
-s = Service(DRIVER_PATH)
-
 def fillIn(username, password, driver):
     driver.get("https://workflow.ecust.edu.cn/default/work/uust/zxxsmryb/mrybtb.jsp")
     driver.maximize_window()
@@ -48,58 +34,94 @@ def getConfig(section,key):
     config.read(configINI)
     return config.get(section,key)
 
-#生成反馈信息，各参数以此为：编号，管理员邮件反馈，用户邮件反馈，管理员pushplus反馈，当前账号，结果
 def report(num,admin_mail_report,user_reports,admin_json_report,account,status):
-    print('账号'+str(num)+':'+account+status) #命令行反馈
-    admin_mail_report = admin_mail_report + (' 账号'+str(num)+':'+account+status+'\n') #管理员邮件反馈
-    user_reports.append('账号'+account+':'+status+'\n') #用户邮件反馈
-    admin_json_report['账号'+str(num)+':'+account] = status #管理员pushplus反馈
+    print('账号'+str(num)+':'+account+status)
+    admin_mail_report = admin_mail_report + (' 账号'+str(num)+':'+account+status+'\n')
+    user_reports.append('账号'+account+':'+status+'\n')
+    admin_json_report['账号'+str(num)+':'+account] = status
     return (admin_mail_report,user_reports,admin_json_report)
 
-#执行反馈操作
 def do_report(admin_mail_report,user_reports,receivers,admin_json_report):
     admin_mail_report = admin_mail_report + ('\nヾ(๑╹ꇴ◠๑)ﾉ”祝您天天开心!')
     #autoReport.mail(admin_mail_report) #启用管理员邮件反馈
-    autoReport.mails(user_reports,receivers) #启用用户邮件反馈
+    #autoReport.mails(user_reports,receivers) #启用用户邮件反馈
     autoReport.pushplus('填报反馈(ˊᗜˋ*)',admin_json_report) #启用管理员pushplus反馈
 
-admin_json_report = {} #管理员反馈
-user_reports = [] #用户反馈内容列表
-receivers = {} #用户清单
-admin_mail_report = '今日自动填报结果：\n\n'
+#主程序
+if __name__ == "__main__":
+    #chromedriver路径
+    DRIVER_PATH = 'chromedriver.exe'
+    if not os.path.exists(DRIVER_PATH):
+        print('找不到ChromeDriver!')
+        input()
+        exit(0)
 
-i=1
-while True:
-    account="ACCOUNT"+str(i)
-    try:
-        accountNow=getConfig(account,"ACCOUNT")
-        passwordNow=getConfig(account,"PASSWORD")
-        # 尝试获取邮件信息
-        aliasNow = getConfig(account,"ALIAS")
-        mailNow = getConfig(account,"MAIL")
-        receivers[aliasNow]=mailNow
-            
-        i += 1
-        driver = webdriver.Chrome(service=s, options=options)
-        fillIn(accountNow,passwordNow,driver)
-        admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='完成！')
-        
-    except NoSectionError:
-        print('已经全部填报或存在序号跳跃')
-        do_report(admin_mail_report,user_reports,receivers,admin_json_report)
-        break
-    except ElementClickInterceptedException:
-        admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='今日已填报')
-        try:
-            driver.close()
-        except:
-            print('chromedriver已经关闭了')
-        continue
-    except NoSuchElementException:
-        admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='账号或密码错误')
-        try:
-            driver.close()
-        except:
-            print('chromedriver已经关闭了')
-        continue
-exit(0)
+    options = webdriver.ChromeOptions()
+    # 忽略无用日志
+    options.add_experimental_option("excludeSwitches", ['enable-automation', 'enable-logging'])
+
+    configINI = "config.ini"
+    s = Service(DRIVER_PATH)
+    #初始化变量
+    admin_json_report = {}
+    user_reports = []
+    receivers = {}
+    try_count = 0 #尝试填报计数
+    error_flag = False #错误标志
+    error_account_number = [] #错误账户序号
+    i=1
+    admin_mail_report = '今日自动填报结果：\n\n'
+
+    while True:
+        while True:
+
+            #第一次尝试时填写全部账户
+            if(try_count==0):
+                account="ACCOUNT"+str(i)
+            #重复尝试时只填写出现错误的账户
+            else:
+                #检查是否遍历出错账户
+                if(i>len(error_account_number)):
+                    break
+                account="ACCOUNT"+str(error_account_number[i-1])
+            try:
+                accountNow=getConfig(account,"ACCOUNT")
+                passwordNow=getConfig(account,"PASSWORD")
+                # 尝试获取邮件信息
+                aliasNow = getConfig(account,"ALIAS")
+                mailNow = getConfig(account,"MAIL")
+                receivers[aliasNow]=mailNow
+                    
+                i += 1
+                driver = webdriver.Chrome(service=s, options=options)
+                fillIn(accountNow,passwordNow,driver)
+                admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='完成！')
+                
+            except NoSectionError:
+                print('已经全部填报或存在序号跳跃')
+                break
+            except ElementClickInterceptedException:
+                admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='今日已填报')
+                try:
+                    driver.close()
+                except:
+                    print('chromedriver已经关闭了')
+                continue
+            except NoSuchElementException:
+                admin_mail_report,user_reports,admin_json_report = report(num=i-1,admin_mail_report=admin_mail_report,user_reports=user_reports,admin_json_report=admin_json_report,account=accountNow,status='账号或密码错误')
+                if not i-1 in error_account_number:
+                    error_account_number.append(i-1)
+                error_flag=True
+                try:
+                    driver.close()
+                except:
+                    print('chromedriver已经关闭了')
+                continue
+        try_count+=1
+        #出现错误则重试，至多重试三次
+        if(try_count<3 and error_flag):
+            i=1
+        else:
+            do_report(admin_mail_report,user_reports,receivers,admin_json_report)
+            break
+    exit(0)
