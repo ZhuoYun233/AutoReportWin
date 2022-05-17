@@ -1,5 +1,6 @@
 # AutoReportWin
-auto report
+一个用于自动填写健康日报的工具。
+只能说全是bug，内容一团糟，但是可以跑。
 ## 使用方法
 下载并安装Chrome
 
