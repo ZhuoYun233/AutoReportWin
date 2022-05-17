@@ -44,7 +44,7 @@ def report(num,admin_mail_report,user_reports,admin_json_report,account,status):
 def do_report(admin_mail_report,user_reports,receivers,admin_json_report):
     admin_mail_report = admin_mail_report + ('\nヾ(๑╹ꇴ◠๑)ﾉ”祝您天天开心!')
     #autoReport.mail(admin_mail_report) #启用管理员邮件反馈
-    #autoReport.mails(user_reports,receivers) #启用用户邮件反馈
+    autoReport.mails(user_reports,receivers) #启用用户邮件反馈
     autoReport.pushplus('填报反馈(ˊᗜˋ*)',admin_json_report) #启用管理员pushplus反馈
 
 #主程序
